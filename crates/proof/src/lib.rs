@@ -192,6 +192,7 @@ pub fn dictionary_load_error(lang: ProofLang) -> Option<String> {
         ProofLang::Hr => "hr_HR",
         ProofLang::Tr => "tr_TR",
         ProofLang::Id => "id_ID",
+        ProofLang::Hu => "hu_HU",
         _ => return None,
     };
     hunspell::load_error(key).map(|(_, reason)| reason)

@@ -67,10 +67,11 @@ pub fn dictionary() -> Arc<HuDict> {
 
 fn load_installed() -> HuDict {
     let Some((aff, dic)) = crate::hunspell::find(NAMES) else {
+        crate::hunspell::clear_load_error(NAMES[0]);
         log::info!("Hungarian spelling: no Hunspell hu_HU dictionary installed");
         return HuDict::default();
     };
-    load(&aff, &dic).unwrap_or_else(|e| {
+    crate::hunspell::note_load(NAMES[0], &dic, load(&aff, &dic)).unwrap_or_else(|e| {
         log::warn!("Hungarian spelling: {e}");
         HuDict::default()
     })
@@ -126,13 +127,15 @@ const FLAG_DIRECTIVES: &[&[u8]] = &[
 /// everything else is read as UTF-8 (the header comments, in ISO 8859-2, lossily: they carry no
 /// rules). With `AF` the `.dic` and the continuation classes already use alias numbers, so they
 /// need no change. (`FLAG num` would do too, but `spellbook` doesn't look numeric flags up as
-/// `AF` aliases.) `None` when the file names a `FLAG` type of its own (nothing to rewrite).
+/// `AF` aliases.) `None` when the file names a `FLAG` type of its own (nothing to rewrite), or
+/// has no `AF` table: its `.dic` would then carry raw byte flags that no longer match the rules.
 pub fn byte_flags_to_long(aff: &[u8]) -> Option<String> {
     let num = |b: u8| format!("{b:02x}");
     let mut out = String::with_capacity(aff.len() + aff.len() / 8);
     out.push_str("FLAG long\n");
     // `AF` and `COMPOUNDRULE` tables open with a count line, which stays as it is.
     let (mut af_count_seen, mut rule_count_seen) = (false, false);
+    let mut aliases = false;
     for line in aff.split(|&b| b == b'\n') {
         let line = line.strip_suffix(b"\r").unwrap_or(line);
         let (key, after_key) = split_field(line);
@@ -142,7 +145,10 @@ pub fn byte_flags_to_long(aff: &[u8]) -> Option<String> {
             b"FLAG" => return None,
             b"AF" if !std::mem::replace(&mut af_count_seen, true) => None,
             // An alias line (`AF V\xcb\xafj… # 1`).
-            b"AF" if !arg.is_empty() => Some(format!("AF {} {rest}", arg.iter().map(|&b| num(b)).collect::<String>())),
+            b"AF" if !arg.is_empty() => {
+                aliases = true;
+                Some(format!("AF {} {rest}", arg.iter().map(|&b| num(b)).collect::<String>()))
+            }
             b"PFX" | b"SFX" if arg.len() == 1 => {
                 Some(format!("{} {} {rest}", String::from_utf8_lossy(key), arg.first().copied().map(num).unwrap_or_default()))
             }
@@ -163,7 +169,7 @@ pub fn byte_flags_to_long(aff: &[u8]) -> Option<String> {
         }
         out.push('\n');
     }
-    Some(out)
+    aliases.then_some(out)
 }
 
 /// The first space- or tab-separated field of `line` and what follows it (leading blanks
@@ -271,6 +277,13 @@ mod tests {
             std::fs::remove_file(dic).unwrap();
         }
         std::fs::remove_dir(dir).unwrap();
+    }
+
+    #[test]
+    fn byte_flags_without_aliases_are_not_rewritten() {
+        // Without `AF` the `.dic` would keep raw byte flags (`/\xe1`) that no rewritten rule matches.
+        assert_eq!(byte_flags_to_long(b"SET UTF-8\nSFX \xe1 Y 1\nSFX \xe1 0 ban .\n"), None);
+        assert!(byte_flags_to_long(b"SET UTF-8\nAF 1\nAF \xe1\nSFX \xe1 Y 1\nSFX \xe1 0 ban .\n").is_some());
     }
 
     #[test]

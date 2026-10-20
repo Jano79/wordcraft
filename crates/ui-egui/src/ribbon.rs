@@ -952,7 +952,7 @@ pub(crate) fn language_menu(ui: &mut Ui, app: &mut WordApp) {
             || (tag == "tr-TR" && current.eq_ignore_ascii_case("tr"))
             || (tag == "cs-CZ" && wordcraft_engine::proof::ProofLang::from_tag(Some(&current)) == wordcraft_engine::proof::ProofLang::Cs)
             || (tag == "id-ID" && wordcraft_engine::proof::ProofLang::from_tag(Some(&current)) == wordcraft_engine::proof::ProofLang::Id)
-            || (tag == "hu-HU" && wordcraft_engine::proof::ProofLang::from_tag(Some(&current)) == wordcraft_engine::proof::ProofLang::Hu)
+            || (tag == "hu-HU" && (current.eq_ignore_ascii_case("hu") || current.eq_ignore_ascii_case("hun")))
             || (tag == "en-US" && current.eq_ignore_ascii_case("en"))
     };
     let checks = language_checks(&current, listed);
@@ -3293,6 +3293,10 @@ mod tests {
         for tag in ["hu", "hu-HU", "HU-hu", "hun"] {
             assert_eq!(language_name(Some(tag)), "Hungarian", "{tag}");
         }
+        // Another region keeps its own name above the list rather than checking Hungarian.
+        let c = language_checks("hu-AT", |t: &str| t.eq_ignore_ascii_case("hu-AT"));
+        assert_eq!(c.extra.as_deref(), Some("hu-AT"));
+        assert!(!c.listed.contains(&true));
     }
 
     #[test]
