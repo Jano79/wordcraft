@@ -12,6 +12,11 @@ Third-party material
 This product bundles third-party material under its own licenses, listed below. The per-file
 list (author, source, license) is in ATTRIBUTION.md.
 
+- spellbook (https://crates.io/crates/spellbook, https://github.com/helix-editor/spellbook) —
+  Copyright the spellbook contributors, used unmodified as a Rust dependency of wordcraft-proof
+  (Hungarian spelling) under the Mozilla Public License 2.0 (https://mozilla.org/MPL/2.0/). Its
+  source code is available at the addresses above. No dictionary data is bundled with it.
+
 - Source Sans 3 and Source Serif 4 (assets/fonts/Source*) — SIL Open Font License 1.1. See assets/fonts/OFL-SourceSans3.txt, OFL-SourceSerif4.txt.
 - Inter (assets/fonts/Inter-*.ttf) — SIL Open Font License 1.1. See assets/fonts/OFL-Inter.txt.
 - JetBrains Mono (assets/fonts/JetBrainsMono-*.ttf) — SIL Open Font License 1.1. See assets/fonts/OFL-JetBrainsMono.txt.

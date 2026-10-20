@@ -395,7 +395,10 @@ mod tests {
     fn real_magyar_ispell_when_available() {
         let Some(dir) = std::env::var_os("WORDCRAFT_HU_DICT_DIR") else { return };
         let dir = std::path::PathBuf::from(dir);
+        // The first Hungarian check pays for this load (reported, not asserted: CI machines vary).
+        let start = std::time::Instant::now();
         let d = load(&dir.join("hu_HU.aff"), &dir.join("hu_HU.dic")).unwrap();
+        eprintln!("hu_HU: loaded in {:?}", start.elapsed());
         for w in ["házaimban", "almafákon", "legeslegszebb", "Budapesten", "helyesírás-ellenőrző", "fiókjaitokból", "újrahasznosíthatóság"]
         {
             assert!(is_correct_with(&d, w), "{w}");
@@ -403,6 +406,11 @@ mod tests {
         for w in ["házaimbam", "helyesirás", "Magyarorszag", "almafakon"] {
             assert!(!is_correct_with(&d, w), "{w}");
         }
+        let start = std::time::Instant::now();
         assert!(d.suggest("helyesirás", 4).contains(&"helyesírás".into()));
+        for w in ["házaimbam", "szamitogep", "kutyáinkk", "asdfghjkl"] {
+            let _ = d.suggest(w, 8);
+        }
+        eprintln!("hu_HU: 5 suggestion lists in {:?}", start.elapsed());
     }
 }
