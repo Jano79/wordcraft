@@ -424,6 +424,7 @@ pub fn unreadable_dictionary(lang: Option<&str>) -> Option<(&'static str, std::p
     let (proof_lang, loaded) = match ProofLang::from_tag(lang) {
         ProofLang::Pl => (ProofLang::Pl, pl::has_dictionary()),
         ProofLang::Pt => (ProofLang::Pt, pt::has_dictionary()),
+        ProofLang::Hu => (ProofLang::Hu, hu::has_dictionary()),
         _ => return None,
     };
     let name = dictionary_needed(proof_lang, false)?;
