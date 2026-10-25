@@ -649,6 +649,15 @@ fn info_page(app: &mut WordApp, ui: &mut Ui) {
         if focused != app.info_editing.map(|(f, _)| f) {
             app.info_editing = None;
         }
+        // Advanced Properties › Custom (#2982): view and edit the document's custom properties.
+        ui.add_space(6.0);
+        if ui
+            .button(egui::RichText::new(tl!("Advanced Properties…")).font(medium(13.5)))
+            .on_hover_text(tl!("View and edit the document's custom properties."))
+            .clicked()
+        {
+            let _ = app.run("ui.dialog", json!({"name": "customProperties"}));
+        }
         // Protect Document › Encrypt with Password (#55).
         ui.add_space(18.0);
         ui.label(egui::RichText::new(tl!("Protect Document")).font(semibold(15.0)));
@@ -733,6 +742,37 @@ mod tests {
             }
             assert!(!out.shapes.is_empty(), "{id}: {icon} draws nothing");
             assert!(!out.shapes.iter().any(|s| has_text(&s.shape)), "{id}: {icon} is not a drawn icon");
+        }
+    }
+
+    /// Regression test for #504: the side menu is a fixed 200 points wide, but egui drew a resize
+    /// line and showed a resize pointer on its right edge that did nothing.
+    #[test]
+    fn the_side_menu_edge_is_not_a_resize_handle() {
+        let mut app = WordApp::new(wordcraft_engine::Session::new(wordcraft_doc::Document::new()), Services::default());
+        app.ui.language = "en".into();
+        app.ui.backstage = true;
+        let ctx = egui::Context::default();
+        let edge = egui::pos2(200.0, 400.0);
+        for frame in 0..8 {
+            let mut input = egui::RawInput {
+                time: Some(f64::from(frame) * 0.1),
+                screen_rect: Some(egui::Rect::from_min_size(egui::pos2(0.0, 0.0), egui::vec2(1440.0, 900.0))),
+                ..Default::default()
+            };
+            if frame > 0 {
+                input.events.push(egui::Event::PointerMoved(edge));
+            }
+            let mut out = ctx.run_ui(input, |ui| {
+                app.logic(&ctx.clone());
+                app.ui(ui);
+            });
+            out.textures_delta.clear();
+            if frame > 2 {
+                assert!(app.ui.backstage, "File is open");
+                let cursor = format!("{:?}", out.platform_output.cursor_icon);
+                assert!(!cursor.starts_with("Resize"), "frame {frame}: the menu edge shows a resize pointer ({cursor})");
+            }
         }
     }
 
