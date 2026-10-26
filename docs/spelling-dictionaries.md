@@ -1,6 +1,6 @@
 # Installing spelling dictionaries
 
-> **Last reviewed:** 2026-10-16 · **Last updated:** 2026-10-23 · **Change:** trivial (Hungarian: `hu_HU`, #2790; previously minor: Spanish: `es_ES`, `es_MX`, `es_419` and `es_UY` with their fallbacks, #3360, #3553; previously trivial: every Hunspell language shows (no dictionary), not only Polish and Portuguese, and Indonesian is listed, #3150; previously trivial: ISO 8859-1 dictionaries are read, #2824)
+> **Last reviewed:** 2026-10-16 · **Last updated:** 2026-10-25 · **Change:** trivial (Hungarian: `hu_HU`, #2790; previously minor: ISO 8859-9 Turkish dictionaries are read, #3692; previously minor: Spanish: `es_ES`, `es_MX`, `es_419` and `es_UY` with their fallbacks, #3360, #3553; previously trivial: every Hunspell language shows (no dictionary), not only Polish and Portuguese, and Indonesian is listed, #3150; previously trivial: ISO 8859-1 dictionaries are read, #2824)
 
 English spelling works out of the box. Polish, Russian, Portuguese, Czech, Italian, Croatian,
 Turkish, Indonesian, Spanish and Hungarian spelling use a standard **Hunspell** dictionary (an `.aff` and a `.dic` file) that
@@ -49,8 +49,9 @@ Hungarian needs compounding and flag aliases the built-in reader doesn't handle,
 dictionary is read by the `spellbook` crate; Magyar Ispell's one-byte flags are converted on
 load, and nothing else needs doing to the files.
 
-The files may be UTF-8 or the encoding named on the `.aff`'s `SET` line (ISO 8859-1, ISO 8859-2, KOI8-R
-and Windows-1251 are read as well; the original VERO `pt_BR` is ISO 8859-1).
+The files may be UTF-8 or the encoding named on the `.aff`'s `SET` line (ISO 8859-1, ISO 8859-2,
+ISO 8859-9, KOI8-R and Windows-1251 are read as well; the original VERO `pt_BR` is ISO 8859-1, older
+Turkish `tr_TR` dictionaries ISO 8859-9).
 
 ## Where WordCraft looks
 
@@ -147,6 +148,7 @@ Never commit dictionary files to this repository: they stay on the user's system
 | 2026-10-25 | trivial | Hungarian (#2790): the `hu_HU` file names and where Magyar Ispell comes from |
 | 2026-10-22 | minor | Spanish (#3360, #3553): the file names for Spain, Mexico, Latin America and Uruguay and their fallbacks |
 | 2026-10-22 | trivial | Italian, Croatian, Turkish, Russian, Czech and Indonesian without a dictionary now show **(no dictionary)** (or **(dictionary unreadable)**) too, as this page already said; before, only Polish and Portuguese did. Indonesian is listed with its file names (#3150) |
+| 2026-10-23 | trivial | ISO 8859-9 (`SET ISO8859-9`) dictionaries are read, so an older Turkish `tr_TR` loads without converting it to UTF-8; the Turkish dictionary is read through the same size-capped reader and `SET` decoding as the others (#3692) |
 | 2026-10-18 | trivial | ISO 8859-1 (`SET ISO8859-1`) dictionaries are read, so the original VERO `pt_BR` works without converting it to UTF-8 (#2824) |
 | 2026-10-18 | minor | An installed dictionary that can't be read shows **(dictionary unreadable)** in the status bar, with the file and reason in its tooltip and in File › Options › Proofing (#2830) |
 | 2026-10-16 | major | First version: the file names per language, the search order and folders on Windows, macOS and Linux, installing `pt_BR` on each, and how to check it works |
