@@ -915,7 +915,7 @@ pub fn check_text_with(text: &str, spans: &[(Range<usize>, ProofLang)], opts: &O
         let found = grammar_in(text, lang, !list_item);
         // An issue belongs to one language: one reaching into a run in another language (a word
         // repeated across the boundary) isn't this language's to report.
-        v.extend(found.into_iter().filter(|i| lang_at(i.start) == lang && lang_at(i.end.saturating_sub(1).max(i.start)) == lang));
+        v.extend(found.into_iter().filter(|i| (i.start..i.end.max(i.start + 1)).all(|p| lang_at(p) == lang)));
     }
     v.sort_by_key(|i| (i.start, i.end));
     v
@@ -1861,6 +1861,10 @@ mod tests {
         let v = check_text(t, &spans);
         assert!(!v.iter().any(|i| i.kind == IssueKind::Grammar && i.start == 3), "{v:?}");
         assert!(check_text(t, &[(0..t.len(), ProofLang::Hu)]).iter().any(|i| i.message == "Ismétlődő szó: „a”"));
+        // Nor is one with another language's run inside it.
+        let t = "alma alma";
+        let v = check_text(t, &[(0..4, ProofLang::Hu), (4..5, ProofLang::En), (5..9, ProofLang::Hu)]);
+        assert!(v.iter().all(|i| i.kind != IssueKind::Grammar), "{v:?}");
         // Portuguese checks in their span only, with the Portuguese message.
         pt::test_dict::install();
         let t = "Ele disse que coraçao e frequencia existem.";

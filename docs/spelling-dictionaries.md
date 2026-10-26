@@ -124,6 +124,8 @@ Other languages work the same way: replace `pt_BR` with the language's folder an
 from the LibreOffice repository (for example `it_IT/it_IT.aff`; the Spanish ones are all in
 `es/`, for example `es/es_MX.aff`).
 
+For Hungarian on Debian or Ubuntu, `sudo apt install hunspell-hu` is enough.
+
 ## Checking that it works
 
 - Restart WordCraft. The status bar no longer says **(no dictionary)**, and a misspelled word
